@@ -1,3 +1,8 @@
+'Includes only what it needs to. (Smaller executable)
+Framework brl.FileSystem
+Import BRL.Retro
+Import PUB.FreeProcess
+
 'PS1 Discs are stored in MODE2, meaning they have 2352 bytes per sector.
 Function GetSectorsBySize(Size:Int)
 	Return Size / 2352
@@ -188,5 +193,5 @@ Select Prog
 		Print "Example:"
 		'Chr:String(34) is a double quote.
 		Print "SBITools.exe -sbi MediEvil.bin " + Chr:String(34) + "MediEvil (Europe).sbi" + Chr:String(34) + " MediEvil.sub"
-		Delay 4000
+		Delay 1000
 End Select
