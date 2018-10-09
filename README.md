@@ -94,33 +94,43 @@ I'm unsure why they didn't include the modified CRC16 bytes in SBI, as it's extr
 Here's a list of what LibCrypt'ed games will do to the player when it realises the SubChannel data isn't correct. Obviously these aren't all the LibCrypted games (check on Redump.org for that), these are just games I've personally tested and some I've been told about.
 Look out for these effects when testing games modified with SBITools on an accurate PSX emulator such as BizHawk. *(Run from .CCD)*
 
-   **Ape Escape (PAL)**
-   Main menu navigation will be completely disabled, making you unable to start the game.
-   **Crash Team Racing (PAL)**
-   Game will hang once at the end of the loading screen (for the level itself).
-   **Crash Team Racing (PAL)**
-   Game will hang once at the end of the loading screen (for the level itself).
-   **Legacy of Kain: Soul Reaver (PAL)** 
-   The game will hang when you're introduced with the combat tutorial when the camera pans to show the enemies.
-   **Lucky Luke: Western Fever (PAL)** 
-   The game stops when you get to the Mexican guy blocking the bridge, he just won't move from there, ever. Even when you complete the quest.
-   **MediEvil (PAL)**
-   Will have a disc error icon upon loading The Hilltop Mausoleum. Interesting to note this was actually the *FIRST* game to use LibCrypt.
-   **MediEvil 2**
-   Will also have the same disc error icon as above, except upon loading Kensington.
-   **PGA European Tour Golf (PAL)**
-   In the third hole of the first tournament or by selecting some holes, the game will get stuck in "demo" mode (and will not you play anything).
-   **Resident Evil 3: Nemesis (PAL)**
-   Will hang at the "Game contains violence and gore" screen.
-   **Spyro 3: Year of the Dragon**
-   Interesting case for this one, the game will eventually randomly delete eggs, reset progress with unlocked characters, remove sheep in boss battles, change the language and even tell you off for playing a "hacked copy" + more.
+**Ape Escape (PAL)**\
+Main menu navigation will be completely disabled, making you unable to start the game.
+
+**Crash Team Racing (PAL)**\
+Game will hang once at the end of the loading screen (for the level itself).
+
+**Legacy of Kain: Soul Reaver (PAL)**\
+The game will hang when you're introduced with the combat tutorial when the camera pans to show the enemies.
+
+**Lucky Luke: Western Fever (PAL)**\
+The game stops when you get to the Mexican guy blocking the bridge, he just won't move from there, ever. Even when you complete the quest.
+
+**MediEvil (PAL)**\
+Will have a disc error icon upon loading The Hilltop Mausoleum. Interesting to note this was actually the *FIRST* game to use LibCrypt.
+
+**MediEvil 2**\
+Will also have the same disc error icon as above, except upon loading Kensington.
+
+**PGA European Tour Golf (PAL)**\
+In the third hole of the first tournament or by selecting some holes, the game will get stuck in "demo" mode (and will not you play anything).
+
+**Resident Evil 3: Nemesis (PAL)**\
+Will hang at the "Game contains violence and gore" screen.
+
+**Spyro 3: Year of the Dragon**\
+Interesting case for this one, the game will eventually randomly delete eggs, reset progress with unlocked characters, remove sheep in boss battles, change the language and even tell you off for playing a "hacked copy" + more.
 Interesting to note that the game also detected early LibCrypt knockout PPF patches back when the game was first released as it had checksum checks throughout the game, which caused the same effects above.
-   **This is Football (PAL)**
-   Hangs on the loading screen going ingame.
-   **V-Rally: Championship Edition 2 (PAL)**
-   The game will endlessly load on the heartbeat loading screen (with no disc activity).
-   **Wip3out (PAL)**
-   The game will freeze when passing the finish line.
+
+**This is Football (PAL)**\
+Hangs on the loading screen going ingame.
+
+**V-Rally: Championship Edition 2 (PAL)**\
+The game will endlessly load on the heartbeat loading screen (with no disc activity).
+
+**Wip3out (PAL)**\
+The game will freeze when passing the finish line.
+
 # CloneCD LibCrypt Ripping guide
 TODO
 # CloneCD LibCrypt Burning guide
