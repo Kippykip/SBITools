@@ -79,13 +79,22 @@ Function SBIToSub(SBIPath:String, SUB:TBank)
 				Next
 				Print "Replaced 10 byte QSUB at MSF: " + SBI_Minutes:Int + ":" + SBI_Seconds:Int + ":" + SBI_Frames:Int + " (sector: " + SectorMSF:Int + ") at offset: " + Hex(ReplaceOffset:Int)
 				
+				'Old V0.2 notes, didn't work out as you can see.
 				'Now we have to recalculate the CRC16 if we want to make all the games fully work.
 				'Although stupidly, the modified CRC16 on LibCrypt games are not included in SBIs, and different LibCrypt games generate them differently
 				'Lets assume it needs recalculating, with a 0080 XOR, although some use 8001 but there's no way to easily check. Why did they make this a standard?
-				Local SUB_CRC16:Short = CRC16(QSub)
+				'Local SUB_CRC16:Short = CRC16(QSub)
+				'V0.2 code bits
 				'0080 XOR is whatmost LibCrypt games use according to ReDump
-				Local SUB_CRCA:Byte = (SUB_CRC16 + $0080) Shr 8
-				Local SUB_CRCB:Byte = (SUB_CRC16 + $0080) - (SUB_CRCA Shl 8)
+				'Local SUB_CRCA:Byte = (SUB_CRC16 + $0080) Shr 8
+				'Local SUB_CRCB:Byte = (SUB_CRC16 + $0080) - (SUB_CRCA Shl 8)
+				'Print "Added 2 byte LibCrypt CRC16 to QSUB with a value of: " + Right(Hex(SUB_CRC16:Short + $0080), 4)
+				
+				'So according to the mednafen source, you just do a regular CRC16, then do a "bitwise exclusive or" to purposely make the CRC16 wrong...
+				'But then despite having the wrong CRC16 compared to the original LibCrypt CRC16 hash, the game will work. Ok?
+				Local SUB_CRC16:Short = ~CRC16(QSub)
+				Local SUB_CRCA:Byte = (SUB_CRC16) Shr 8
+				Local SUB_CRCB:Byte = (SUB_CRC16) - (SUB_CRCA Shl 8)
 				'Have to do it this way as PokeShort will reverse to little endian or something
 				PokeByte(SUB, ReplaceOffset:Int + 10, SUB_CRCA)
 				PokeByte(SUB, ReplaceOffset:Int + 11, SUB_CRCB)

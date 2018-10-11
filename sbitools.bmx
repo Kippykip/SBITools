@@ -6,7 +6,7 @@ Include "CRC16.bmx"
 Include "functions.bmx"
 
 'Main Program
-Print "SBITools v0.2 - http://kippykip.com"
+Print "SBITools v0.2.1 - http://kippykip.com"
 Global Prog:Int = 0
 
 'Check for psxt001z.exe
@@ -322,7 +322,8 @@ Select Prog
 		Print "-lsd: Patches an images subchannel with a .LSD file."
 		Print "-cue2ccd: Converts a 'BIN/CUE/SBI|LSD' setup into a 'IMG/CCD/CUE/SUB' setup."
 		Print "    This makes burning LibCrypt games easily possible with software such"
-		Print "    as CloneCD"
+		Print "    as CloneCD. SBI/LSD files are loaded from the same directory as the .CUE"
+		Print "    file under the same name."
 		Print ""
 		Print "Examples:"
 		Print "SBITools.exe -sbi " + Chr(34) + "C:\CoolGameRips\VRally2.CUE" + Chr(34) + " " + Chr(34) + "C:\CoolGameRips\sbipatches\V-Rally - Championship Edition 2 (Europe) (En,Fr,De).sbi" + Chr(34)

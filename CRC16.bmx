@@ -41,21 +41,3 @@ Function CRC16:Short(Array:Byte[])
 	Next
 	Return ~cksum:Short
 End Function
-Local QSub:Byte[10]
-
-rem
-QSub[0] = $41
-QSub[1] = $01
-QSub[2] = $01
-QSub[3] = $23
-QSub[4] = $06
-QSub[5] = $05
-QSub[6] = $00
-QSub[7] = $03
-QSub[8] = $08
-QSub[9] = $01
-
-
-Print Hex(crc16(QSub) + 128)
-Print crc16(QSub)
-endrem
