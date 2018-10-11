@@ -17,7 +17,9 @@ SBITools v0.2.1 - http://kippykip.com
 
 **Arguments:**
 > SBITools.exe -sbi cuefile subchannel.sbi
+> 
 > SBITools.exe -lsd cuefile subchannel.lsd
+> 
 > SBITools.exe -cue2ccd cuefile
 
 **Argument Definitions:**
