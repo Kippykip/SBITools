@@ -19,11 +19,17 @@ SBITools v0.3 - http://kippykip.com
 **Arguments:**
 
 >SBITools.exe -cue2ccd cuefile.cue
+
 >SBITools.exe -lsd2sub cuefile.cue subchannel.lsd
+
 >SBITools.exe -lsd2sbi subchannel.lsd
+
 >SBITools.exe -sbi2sub cuefile.cue subchannel.sbi
+
 >SBITools.exe -sbi2lsd subchannel.sbi
+
 >SBITools.exe -singletrack cuefile
+		
 		
 **Argument Definitions:**
 
@@ -58,27 +64,27 @@ I've bundled them all on the [releases page](https://github.com/Kippykip/SBITool
 
 **Version History**
 
-	Version 0.3
-		- BIN/CUE setups with seperated tracks are now fully supported!
-		- Renamed -SBI & -LSD to -SBI2SUB & -LSD2SUB
-		- Added -singletrack conversion command, -CUE2CCD uses this automatically if necessary.
-		- Added drag and drop .BAT files for -SINGLETRACK and -CUE2CCD, since they will be used the most.
-		- Added -SBI2LSD and -LSD2SBI conversion functions
-		- -SBI2SUB & -LSD2SUB no longer export in subfolders (since it only exports 1 file anyways.)
-		- SBITools now includes all known LibCrypt LSD patches in the "LSD Patches" directory
+    Version 0.3
+        - BIN/CUE setups with seperated tracks are now fully supported!
+        - Renamed -SBI & -LSD to -SBI2SUB & -LSD2SUB
+        - Added -singletrack conversion command, -CUE2CCD uses this automatically if necessary.
+        - Added drag and drop .BAT files for -SINGLETRACK and -CUE2CCD, since they will be used the most.
+        - Added -SBI2LSD and -LSD2SBI conversion functions
+        - -SBI2SUB & -LSD2SUB no longer export in subfolders (since it only exports 1 file anyways.)
+        - SBITools now includes all known LibCrypt LSD patches in the "LSD Patches" directory
     Version 0.2.1
         - SBI Patching functions were modified to now work with every game.
         - Cleaned up a tiny bit of code in CRC16.bmx
     Version 0.2
-	    - .SUB patch functions now also add the CD Audio track data to the subchannel. 
-		  Although this change now requires you to specify a .CUE file instead of a Binary file for -SBI and -LSD functions. SUB files are now exported to the \SUB directory
-		  in these functions too.
-		- The -SBI function now recreates some of the CRC16 bytes required for handful of games,
-		  although still not 100% compatible.
-		- Command line functions are no longer case sensitive. (oops)
-		- Added -cue2ccd, which allows you to do a full burnable conversion.
+        - .SUB patch functions now also add the CD Audio track data to the subchannel. 
+          Although this change now requires you to specify a .CUE file instead of a Binary file for -SBI and -LSD functions. SUB files are now exported to the \SUB directory
+          in these functions too.
+        - The -SBI function now recreates some of the CRC16 bytes required for handful of games,
+          although still not 100% compatible.
+        - Command line functions are no longer case sensitive. (oops)
+        - Added -cue2ccd, which allows you to do a full burnable conversion.
     Version 0.1
-	    - Initial release
+        - Initial release
 ## SBI File Format Specifications
 
     *HEADER*
