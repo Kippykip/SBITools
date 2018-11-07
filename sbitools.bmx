@@ -6,7 +6,7 @@ Include "CRC16.bmx"
 Include "functions.bmx"
 
 'Main Program
-Print "SBITools v0.2.1 - http://kippykip.com"
+Print "SBITools v0.3 - http://kippykip.com"
 Global Prog:Int = 0
 
 'Check for psxt001z.exe
@@ -14,105 +14,89 @@ If(FileType("psxt001z.exe") <> 1) Then RuntimeError("psxt001z.exe is missing! Pl
 
 'Are there arguments?
 If(Len(AppArgs) > 1)
-	If(Lower(AppArgs[1]) = "-sbi" And Len(AppArgs) >= 4)
+	If(Lower(AppArgs[1]) = "-sbi2sub" And Len(AppArgs) >= 4)
 		Prog:Int = 1
-	ElseIf(Lower(AppArgs[1]) = "-lsd" And Len(AppArgs) >= 4)
+	ElseIf(Lower(AppArgs[1]) = "-lsd2sub" And Len(AppArgs) >= 4)
 		Prog:Int = 2
 	ElseIf(Lower(AppArgs[1]) = "-cue2ccd" And Len(AppArgs) >= 3)
 		Prog:Int = 3
+	ElseIf(Lower(AppArgs[1]) = "-singletrack" And Len(AppArgs) >= 3)
+		Prog:Int = 4
+	ElseIf(Lower(AppArgs[1]) = "-lsd2sbi" And Len(AppArgs) >= 3)
+		Prog:Int = 5
+	ElseIf(Lower(AppArgs[1]) = "-sbi2lsd" And Len(AppArgs) >= 3)
+		Prog:Int = 6
 	EndIf
 EndIf
 
 Select Prog
-	
 	Case 1 'SBI to SUB
 		'Safeguard
 		If(FileType(AppArgs[3]) <> 1) Then RuntimeError("SBI subchannel doesn't exist!")
 		'Add the cue file
-		Local CuePath:String = AppArgs[2].Replace("/", "\")
-		If(FileType(CuePath:String) <> 1) Then RuntimeError("Missing CUE file!")
-		CUE.AddCue(CuePath:String)
-		Local FDRPath:String[] = CuePath.Split("\")
-		Local BaseName:String = CUE.GetBinPath(FDRPath) 'This gives us the BaseName (filename before .cue) and also adds the binary locaton to CUE.BinaryFN	
+		CUE.AddCue(AppArgs[2])
+		Local BaseName:String = CUE.GetBinPath(CUE.FDRPath) 'This gives us the BaseName (filename before .cue) and also adds the binary locaton to CUE.BinaryFN	
 	
 		'Lets make an export folder
 		Print "Exporting to: 'SUB\" + BaseName:String + "'\."
-		If(FileType("SUB") <> 2) 'Does a CCD folder exist?
+		If(FileType("SUB") <> 2) 'Does a SUB folder exist?
 			CreateDir("SUB")
 			Print "Directory 'SUB' doesn't exist! Creating..."
 		EndIf
-		If(FileType("SUB\" + BaseName:String) <> 2) 'Does BaseName folder exist?
-			CreateDir("SUB\" + BaseName:String)
-			Print "Directory 'SUB\" + BaseName:String + "' doesn't exist! Creating..."
-		EndIf
 		
 		'Get the sector count
-		Local Sectors:Int = GetSectorsBySize(Int(FileSize(CUE.BinPath + CUE.BinaryFN)))
-		Print "Image contains " + Sectors:Int + " sectors..."
+		Print "Image contains " + CUE.MultiSectorCount + " sectors..."
 		'Launch psxt001z with the following arguments
-		GenSub("SUB\" + BaseName:String + "\" + BaseName + ".sub", Sectors:Int)
+		GenSub("SUB\" + BaseName + ".sub", CUE.MultiSectorCount)
 		
 		'Load it
-		Local Subchannel:TBank = LoadBank("SUB\" + BaseName:String + "\" + BaseName + ".sub")
+		Local Subchannel:TBank = LoadBank("SUB\" + BaseName + ".sub")
 		If Not(Subchannel) Then RuntimeError("Error reading created .SUB subchannel...")
 		'Launch the conversion function
 		SBIToSub(AppArgs[3], Subchannel)
-		SaveBank(Subchannel, "SUB\" + BaseName:String + "\" + BaseName + ".sub") 'Save the modified SUB
+		SaveBank(Subchannel, "SUB\" + BaseName + ".sub") 'Save the modified SUB
 		'Hopefully everything worked
-		Delay 2000
+		OpenDir(".\SUB\") 'Open the directory!
 	Case 2 'LSD to SUB
 		'Safeguard
 		If(FileType(AppArgs[3]) <> 1) Then RuntimeError("LSD subchannel doesn't exist!")
 		'Add the cue file
-		Local CuePath:String = AppArgs[2].Replace("/", "\")
-		If(FileType(CuePath:String) <> 1) Then RuntimeError("Missing CUE file!")
-		CUE.AddCue(CuePath:String)
-		Local FDRPath:String[] = CuePath.Split("\")
-		Local BaseName:String = CUE.GetBinPath(FDRPath) 'This gives us the BaseName (filename before .cue) and also adds the binary locaton to CUE.BinaryFN	
+		CUE.AddCue(AppArgs[2])
+		Local BaseName:String = CUE.GetBinPath(CUE.FDRPath) 'This gives us the BaseName (filename before .cue) and also adds the binary locaton to CUE.BinaryFN	
 	
 		'Lets make an export folder
-		Print "Exporting to: 'SUB\" + BaseName:String + "'\."
-		If(FileType("SUB") <> 2) 'Does a CCD folder exist?
+		Print "Exporting to: 'CCD\" + BaseName:String + ".SUB'."
+		If(FileType("SUB") <> 2) 'Does a SUB folder exist?
 			CreateDir("SUB")
 			Print "Directory 'SUB' doesn't exist! Creating..."
 		EndIf
-		If(FileType("SUB\" + BaseName:String) <> 2) 'Does BaseName folder exist?
-			CreateDir("SUB\" + BaseName:String)
-			Print "Directory 'SUB\" + BaseName:String + "' doesn't exist! Creating..."
-		EndIf
 		
 		'Get the sector count
-		Local Sectors:Int = GetSectorsBySize(Int(FileSize(CUE.BinPath + CUE.BinaryFN)))
-		Print "Image contains " + Sectors:Int + " sectors..."
+		Print "Image contains " + CUE.MultiSectorCount + " sectors..."
 		'Launch psxt001z with the following arguments
-		GenSub("SUB\" + BaseName:String + "\" + BaseName + ".sub", Sectors:Int)
+		GenSub("SUB\" + BaseName + ".sub", CUE.MultiSectorCount)
 		'Load it
-		Local Subchannel:TBank = LoadBank("SUB\" + BaseName:String + "\" + BaseName + ".sub")
+		Local Subchannel:TBank = LoadBank("SUB\" + BaseName + ".sub")
 		If Not(Subchannel) Then RuntimeError("Error reading created .SUB subchannel...")
 		'Launch the conversion function
 		LSDToSub(AppArgs[3], Subchannel)
-		SaveBank(Subchannel, "SUB\" + BaseName:String + "\" + BaseName + ".sub") 'Save the modified SUB
+		SaveBank(Subchannel, "SUB\" + BaseName + ".sub") 'Save the modified SUB
 		'Hopefully everything worked
-		Delay 2000
+		OpenDir(".\SUB\") 'Open the directory!
 	Case 3 'CCD Generator
 		'This was pretty handy
 		'https://books.google.com.au/books?id=76HVAwAAQBAJ&pg=PA233&lpg=PA233&dq=entry+1+clonecd&source=bl&ots=XEUM8fr_Sp&sig=GxJHxBp5AEFxbVgNMiGt69lB8Ds&hl=en&sa=X&ved=2ahUKEwjU5rqs_ezdAhVNITQIHTtxCyYQ6AEwA3oECAYQAQ#v=onepage&q=entry%201%20clonecd&f=false
 		
 		'Add the cue file
-		Local CuePath:String = AppArgs[2].Replace("/", "\")
-		If(FileType(CuePath:String) <> 1) Then RuntimeError("Missing CUE file!")
-		CUE.AddCue(CuePath:String)
-		Local FDRPath:String[] = CuePath.Split("\")
-		Local BaseName:String = CUE.GetBinPath(FDRPath) 'This gives us the BaseName (filename before .cue) and also adds the binary locaton to CUE.BinaryFN	
+		CUE.AddCue(AppArgs[2])
+		Local BaseName:String = CUE.GetBinPath(CUE.FDRPath) 'This gives us the BaseName (filename before .cue) and also adds the binary locaton to CUE.BinaryFN	
 
 		'Useful CUE information we'll use below
 		Local TrackCount:Int = CUE.CountCDDA()
-		Local TotalSectors:Int = GetSectorsBySize(Int(FileSize(CUE.BinPath:String + CUE.BinaryFN)))
-		'Local TotalMSF:Int[] = SectorToMSF(TotalSectors:Int) 'Not used right now
-		Local TotalMSFLeadin:Int[] = SectorToMSF(TotalSectors:Int + 150)
+		Local TotalMSFLeadin:Int[] = SectorToMSF(CUE.MultiSectorCount + 150)
 		
 		'Lets make an export folder
-		Print "Exporting to: 'CCD\" + BaseName:String + "'\."
+		Print "Exporting to: 'CCD\" + BaseName:String + ".SUB'."
 		If(FileType("CCD") <> 2) 'Does a CCD folder exist?
 			CreateDir("CCD")
 			Print "Directory 'CCD' doesn't exist! Creating..."
@@ -196,7 +180,7 @@ Select Prog
 		WriteLine(CCDFile, "PMin=" + TotalMSFLeadin[0]) 'Minutes of the PLBA underneath, although 2 second leadin
 		WriteLine(CCDFile, "PSec=" + TotalMSFLeadin[1]) 'Seconds of the PLBA underneath, although 2 second leadin
 		WriteLine(CCDFile, "PFrame=" + TotalMSFLeadin[2]) 'Frames of the PLBA underneath, although 2 second leadin
-		WriteLine(CCDFile, "PLBA=" + TotalSectors) 'It's just the total Sector count
+		WriteLine(CCDFile, "PLBA=" + CUE.MultiSectorCount) 'It's just the total Sector count
 		
 		'Always the same
 		WriteLine(CCDFile, "[Entry 3]")
@@ -266,18 +250,25 @@ Select Prog
 		Next
 		CloseFile(CCDFile)
 		Print "Done writing CCD!"
+				
+		'If it's a multitrack, combine it!
+		If(CUE.IsMultiTrack)
+			Print "Merging image (This will take a moment)"
+			'Local MergedImage:TStream = WriteFile("CCD\" + BaseName:String + "\" + BaseName:String + ".img")
+			'CopyStream
+			CUE.MergeImage("CCD\" + BaseName:String + "\" + BaseName:String + ".img")
+		Else
+			Print "Copying image (This will take a moment)"
+			CopyFile(CUE.BinPath:String + CUE.BinaryFN, "CCD\" + BaseName:String + "\" + BaseName:String + ".img")
+		EndIf
 		
 		'Alright, now lets make a modified cue
 		Print "Creating modified CUE"
-		CUE.EditBinPath(CuePath, BaseName:String + ".img", "CCD\" + BaseName:String + "\" + BaseName:String + ".cue")
+		CUE.ExportCue("CCD\" + BaseName:String + "\" + BaseName:String + ".cue", BaseName:String + ".img")
 		Print "Done writing CUE!"
 		
-		'Copy the image under the new name
-		Print "Copying image (This will take a moment)"
-		CopyFile(CUE.BinPath:String + CUE.BinaryFN, "CCD\" + BaseName:String + "\" + BaseName:String + ".img")
-		
 		'Time to run psxt001z
-		GenSub("CCD\" + BaseName:String + "\" + BaseName:String + ".sub", TotalSectors:Int)
+		GenSub("CCD\" + BaseName:String + "\" + BaseName:String + ".sub", CUE.MultiSectorCount)
 		
 		'LibCrypt + CDDA audio Patching
 		'SBI file found
@@ -306,30 +297,189 @@ Select Prog
 			SaveBank(Subchannel, "CCD\" + BaseName:String + "\" + BaseName + ".sub") 'Save the modified SUB
 		EndIf
 		
-		
 		Print "Done converting!"
 		Print "Everything exported to: '" + "CCD\" + BaseName + "\'"
-		Delay 2000
+		OpenDir(".\CCD\" + BaseName + "\") 'Open the directory!
+	Case 4 'Single Track CUE converter
+		'Add the cue file
+		CUE.AddCue(AppArgs[2])
+		Local BaseName:String = CUE.GetBinPath(CUE.FDRPath) 'This gives us the BaseName (filename before .cue) and also adds the binary locaton to CUE.BinaryFN	
+		
+		'Lets make an export folder
+		Print "Exporting to: 'CUE\" + BaseName:String + "'\."
+		If(FileType("CUE") <> 2) 'Does a CUE folder exist?
+			CreateDir("CUE")
+			Print "Directory 'CUE' doesn't exist! Creating..."
+		EndIf
+		If(FileType("CUE\" + BaseName:String) <> 2) 'Does the basename folder exist?
+			CreateDir("CUE\" + BaseName:String)
+			Print "Directory 'CUE\" + BaseName:String + "' doesn't exist! Creating..."
+		EndIf
+		
+		'Should be multitrack
+		If(CUE.IsMultiTrack)
+			Print "Merging image (This will take a moment)"
+			CUE.MergeImage("CUE\" + BaseName:String + "\" + BaseName:String + ".bin")
+		Else
+			RuntimeError("BIN/CUE setup is already single track binary!")
+		EndIf
+		
+		'Alright, now lets make a modified cue
+		Print "Creating modified CUE"
+		CUE.ExportCue("CUE\" + BaseName:String + "\" + BaseName:String + ".cue", BaseName:String + ".bin")
+		Print "Done writing CUE!"
+		
+		'SBI file found
+		If(FileType(CUE.BinPath + BaseName + ".sbi")) 'SBI file found
+			Print "LibCrypt patch '" + BaseName + ".sbi' was found! Copying..."
+			CopyFile(CUE.BinPath + BaseName + ".sbi", "CUE\" + BaseName:String + "\" + BaseName:String + ".sbi")
+		'LSD file found
+		ElseIf(FileType(CUE.BinPath + BaseName + ".lsd"))
+			Print "LibCrypt patch '" + BaseName + ".lsd' was found! Copying..."
+			CopyFile(CUE.BinPath + BaseName + ".lsd", "CUE\" + BaseName:String + "\" + BaseName:String + ".lsd")
+		Else
+			Print "No LibCrypt .LSD/.SBI patches were found. Ignoring..."
+		EndIf
+		Print "Finished!"
+		OpenDir(".\CUE\" + BaseName + "\") 'Open the directory!
+	Case 5 'LSD2SBI
+		'Does it exist?
+		If(FileType(AppArgs[2]) <> 1) Then RuntimeError(".LSD subchannel doesn't exist!")
+		
+		'Split the path and fix the slashes etc
+		Local FDRPath:String[] = AppArgs[2].Replace("/", "\").Split("\")
+		'This just gets the name of the lsd. Say if it was "C:\CoolGame.lsd", this would return "CoolGame"
+		Local BaseName:String = Left(FDRPath[Len(FDRPath) - 1], Len(FDRPath[Len(FDRPath) - 1]) - 4)
+		
+		'Lets make an export folder
+		Print "Exporting as: 'SBI\" + BaseName:String + ".sbi'."
+		If(FileType("SBI") <> 2) 'Does a SBI folder exist?
+			CreateDir("SBI")
+			Print "Directory 'SBI' doesn't exist! Creating..."
+		EndIf
+		
+		'Set the vars!
+		Local LSDFile:TStream = ReadFile(AppArgs[2])
+		Local SBIFile:TStream = WriteFile("SBI\" + BaseName + ".sbi")
+		If Not (SBIFile) Then RuntimeError("Error writing SBI!")
+		
+		'Begin writing SBI header
+		Print "Writing SBI header..."
+		WriteString(SBIFile, "SBI")
+		WriteByte(SBIFile, 0)
+		
+		'Loop through the whole LSD file!
+		Print "Writing QSUB's..."
+		While Not(Eof(LSDFile))
+			WriteByte(SBIFile, ReadByte(LSDFile)) 'Minutes
+			WriteByte(SBIFile, ReadByte(LSDFile)) 'Seconds
+			WriteByte(SBIFile, ReadByte(LSDFile)) 'Frames
+			WriteByte(SBIFile, 1) 'Dummy byte
+			
+			'QSUB
+			For Local x = 0 To 9
+				WriteByte(SBIFile, ReadByte(LSDFile))
+			Next
+			
+			'CRC16, unused for SBI conversion
+			ReadByte(LSDFile)
+			ReadByte(LSDFile)
+		Wend
+		
+		'Done!
+		CloseFile(LSDFile)
+		CloseFile(SBIFile)
+		Print "Finished!"
+		OpenDir(".\SBI\") 'Open the directory!
+	Case 6 'SBI2LSD
+		'Does it exist?
+		If(FileType(AppArgs[2]) <> 1) Then RuntimeError(".SBI subchannel doesn't exist!")
+		
+		'Split the path and fix the slashes etc
+		Local FDRPath:String[] = AppArgs[2].Replace("/", "\").Split("\")
+		'This just gets the name of the lsd. Say if it was "C:\CoolGame.lsd", this would return "CoolGame"
+		Local BaseName:String = Left(FDRPath[Len(FDRPath) - 1], Len(FDRPath[Len(FDRPath) - 1]) - 4)
+		
+		'Lets make an export folder
+		Print "Exporting as: 'LSD\" + BaseName:String + ".lsd'."
+		If(FileType("LSD") <> 2) 'Does a LSD folder exist?
+			CreateDir("LSD")
+			Print "Directory 'LSD' doesn't exist! Creating..."
+		EndIf
+		
+		'Set the vars!
+		Local SBIFile:TStream = ReadFile(AppArgs[2])
+		'4801107 = [SUB\0] header as an int
+		If(ReadInt(SBIFile) <> 4801107) Then RuntimeError("This isn't a valid SBI file!")
+		
+		'Now 
+		Local LSDFile:TStream = WriteFile("LSD\" + BaseName + ".lsd")
+		If Not (LSDFile) Then RuntimeError("Error writing LSD!")
+				
+		'Loop through the whole SBI file!
+		Print "Writing QSUB's/CRC16's..."
+		While Not(Eof(SBIFile))
+			WriteByte(LSDFile, ReadByte(SBIFile)) 'Minutes
+			WriteByte(LSDFile, ReadByte(SBIFile)) 'Seconds
+			WriteByte(LSDFile, ReadByte(SBIFile)) 'Frames
+			ReadByte(SBIFile) 'Dummy byte
+			
+			'QSUB
+			Local QSub:Byte[10]
+			For Local x = 0 To 9
+				QSub[x] = ReadByte(SBIFile)
+				WriteByte(LSDFile, QSub[x]) 'QSUB Byte
+			Next
+			
+			'CRC16 regeneration
+			Local SUB_CRC16:Short = ~CRC16(QSub)
+			Local SUB_CRCA:Byte = (SUB_CRC16) Shr 8
+			Local SUB_CRCB:Byte = (SUB_CRC16) - (SUB_CRCA Shl 8)
+			'Have to do it this way as PokeShort will reverse to little endian or something
+			WriteByte(LSDFile, SUB_CRCA)
+			WriteByte(LSDFile, SUB_CRCB)
+		Wend
+		
+		'Done!
+		CloseFile(LSDFile)
+		CloseFile(SBIFile)
+		Print "Finished!"
+		OpenDir(".\LSD\") 'Open the directory!
+
 	Default 'No arguments
 		Print "Missing command line!"
 		Print ""
-		Print "SBITools.exe -sbi cuefile subchannel.sbi"
-		Print "SBITools.exe -lsd cuefile subchannel.lsd"
-		Print "SBITools.exe -cue2ccd cuefile"
+		Print "SBITools.exe -cue2ccd cuefile.cue"
+		Print "SBITools.exe -lsd2sub cuefile.cue subchannel.lsd"
+		Print "SBITools.exe -lsd2sbi subchannel.lsd"
+		Print "SBITools.exe -sbi2sub cuefile.cue subchannel.sbi"
+		Print "SBITools.exe -sbi2lsd subchannel.sbi"
+		Print "SBITools.exe -singletrack cuefile"
 		Print ""
 		Print "Definitions:"
-		Print "-sbi: Patches an images subchannel with a .SBI file."
-		Print "-lsd: Patches an images subchannel with a .LSD file."
 		Print "-cue2ccd: Converts a 'BIN/CUE/SBI|LSD' setup into a 'IMG/CCD/CUE/SUB' setup."
 		Print "    This makes burning LibCrypt games easily possible with software such"
 		Print "    as CloneCD. SBI/LSD files are loaded from the same directory as the .CUE"
 		Print "    file under the same name."
+		Print "-lsd2sub: Creates a patched .SUB subchannel with a .LSD file."
+		Print "-lsd2sbi: Converts a .SBI subchannel patch to a .LSD subchannel patch."
+		Print "-sbi2sub: Creates a patched .SUB subchannel with a .SBI file."
+		Print "-sbi2lsd: Converts a .SBI subchannel patch to a .LSD subchannel patch."
+		Print "    NOTE: This cannot perfectly reconstruct the missing CRC16 bytes!"
+		Print "-singletrack: Converts a seperate track BIN/CUE setup into a single track"
+		Print "    BIN/CUE setup."
 		Print ""
 		Print "Examples:"
-		Print "SBITools.exe -sbi " + Chr(34) + "C:\CoolGameRips\VRally2.CUE" + Chr(34) + " " + Chr(34) + "C:\CoolGameRips\sbipatches\V-Rally - Championship Edition 2 (Europe) (En,Fr,De).sbi" + Chr(34)
-		Print ""
-		Print "SBITools.exe -lsd " + Chr(34) + "C:\CoolGameRips\MediEvil.CUE" + Chr(34) + " " + Chr(34) + "C:\CoolGameRips\sbipatches\MediEvil (Europe).lsd" + Chr(34)
-		Print ""
 		Print "SBITools.exe -cue2ccd " + Chr(34) + "C:\CoolGameRips\MediEvil.CUE" + Chr(34)
+		Print ""
+		Print "SBITools.exe -sbi2sub " + Chr(34) + "C:\CoolGameRips\VRally2.CUE" + Chr(34) + " " + Chr(34) + "C:\CoolGameRips\sbipatches\V-Rally - Championship Edition 2 (Europe) (En,Fr,De).sbi" + Chr(34)
+		Print ""
+		Print "SBITools.exe -lsd2sub " + Chr(34) + "C:\CoolGameRips\MediEvil.CUE" + Chr(34) + " " + Chr(34) + "C:\CoolGameRips\sbipatches\MediEvil (Europe).lsd" + Chr(34)
+		Print ""
+		Print "SBITools.exe -sbi2lsd " + Chr(34) + "C:\CoolGameRips\sbipatches\V-Rally - Championship Edition 2 (Europe) (En,Fr,De).sbi" + Chr(34)
+		Print ""
+		Print "SBITools.exe -lsd2sbi " + Chr(34) + "C:\CoolGameRips\sbipatches\MediEvil (Europe).lsd" + Chr(34)
+		Print ""
+		Print "SBITools.exe -singletrack " + Chr(34) + "C:\CoolGameRips\VRally2.CUE" + Chr(34)
 		Delay 1000
 End Select

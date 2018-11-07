@@ -1,4 +1,4 @@
-'PS1 Discs are stored in MODE2, meaning they have 2352 bytes per sector.
+'PS1 Discs are stored in MODE2, meaning they have 2352 bytes per Sector.
 Function GetSectorsBySize(Size:Int)
 	Return Size / 2352
 End Function
@@ -29,6 +29,16 @@ Function NumberToHexMSF:Byte(Number:Int)
 		HexStr:String = HexStr:String + Number
 	EndIf
 	Return Byte(HexStr.ToInt())
+End Function
+
+Function NumberToStrMSF:String(Number:Int)
+	Local HexStr:String
+	If(Number:Int <= 9)
+		HexStr:String = HexStr:String + "0" + Number
+	Else
+		HexStr:String = HexStr:String + Number
+	EndIf
+	Return HexStr:String
 End Function
 
 'Converts a Sector to a byte offset for a .SUB file
@@ -284,11 +294,17 @@ Function GenSub(FileName:String, Sectors:Int)
 	'If the subchannel already exists, delete it.
 	'Psxt001z doesn't override it
 	If(FileType(FileName:String)) Then DeleteFile(FileName:String)
-	Local psxtoolz:TProcess = CreateProcess:TProcess("cmd /c psxt001z --sub " + Chr(34) + FileName:String + Chr(34) + " " + Sectors:Int)
+	Local psxtoolz:TProcess = CreateProcess:TProcess("cmd.exe /c psxt001z --sub " + Chr(34) + FileName:String + Chr(34) + " " + Sectors:Int)
 
 	While(ProcessStatus(psxtoolz:TProcess) = 1)
 		Delay 1000
 	Wend
+End Function
+
+'Open a directory
+Function OpenDir(Directory:String)
+	Local Explorer:TProcess = CreateProcess:TProcess("explorer.exe " + Chr(34) + Directory:String + Chr(34))
+	DetachProcess(Explorer)
 End Function
 
 'Cue Type
@@ -296,31 +312,73 @@ Type CUE
 	Global List:TList = CreateList()
 	Global BinaryFN:String
 	Global BinPath:String
+	Global IsMultiTrack:Byte = False
+	Global FDRPath:String[]
+	Global MultiSectorCount:Int = 0'Total sectors counted for multiple sector tracks
 	Field Track:Int
 	Field TrackType:String
 	Field Index:Int
+	Field TrackFN:String
 	Field MSF:Int[3]
 	Field Sector:Int
 	
 	'Add a track index
-	Function AddListing(Track:Int, TrackType:String, Index:Int, Minutes:Int, Seconds:Int, Frames:Int)
+	Function AddListing(Track:Int, TrackType:String, Index:Int, Minutes:Int, Seconds:Int, Frames:Int, FileName:String)
 		Local CUETrack:CUE = New CUE
 		CUETrack.Track = Track
 		CUETrack.TrackType = TrackType
 		CUETrack.Index = Index
-		CUETrack.MSF[0] = Minutes
-		CUETrack.MSF[1] = Seconds
-		CUETrack.MSF[2] = Frames
+		CUETrack.TrackFN = FileName
 		CUETrack.Sector = MSFToSector(Minutes, Seconds, Frames)
+		
+		'Alright, lets get the path of the CUE/Bin file(s)
+		Local TrackPath:String
+		For Local x = 0 To Len(CUE.FDRPath) - 2 'Take 1 so it doesn't overflow, take another 1 so get rid of the CUE filename in this path
+			TrackPath = TrackPath + CUE.FDRPath[x] + "\"
+		Next
+			
+		'Honestly whoever made multitrack BIN/CUE's the ReDump standard are fr*cking frI*ks!!1
+		If(CUE.IsMultiTrack)
+			'BIN file exists?
+			If(FileType(TrackPath + FileName) <> 1) Then RuntimeError("BIN Track '" + TrackPath + FileName + "' is missing!")
+			If(FileType(TrackPath + BinaryFN) <> 1) Then RuntimeError("BIN Track '" + TrackPath + BinaryFN + "' is missing!") 'Check for Track 1
+			
+			'Start counting!
+			If(Index = 0)
+				CUETrack.Sector = MultiSectorCount
+			ElseIf(Index = 1)
+				CUETrack.Sector = MultiSectorCount + 150 '2 Second LeadIn on Index 1's
+				'Add the sector count of the next track
+				MultiSectorCount = MultiSectorCount + GetSectorsBySize(Int(FileSize(TrackPath + FileName)))
+			Else 'Umm, Index 3? uhhhh
+				RuntimeError("Invalid Index in CUE!")
+			EndIf
+			'Recalculate MSF
+			CUETrack.MSF = SectorToMSF(CUETrack.Sector)
+		Else 'Single track BIN
+			CUETrack.MSF[0] = Minutes
+			CUETrack.MSF[1] = Seconds
+			CUETrack.MSF[2] = Frames
+			
+			'Alrighty so because the IsMultiTrack function only changes when it sees more than 1 FILE parameter, we better count the sectors of Track 1!
+			'But if it can't find it, ignore it. We'll also add the sector count here
+			if(FileType(TrackPath + BinaryFN) = 1)
+				MultiSectorCount = GetSectorsBySize(Int(FileSize(TrackPath + BinaryFN)))
+			EndIf
+		EndIf
 		ListAddLast(List:TList, CUETrack)
 	EndFunction
 	Function AddCue(CuePath:String)
-		'Open the file
+		'Open the file, fix the slashes
+		CuePath = CuePath.Replace("/", "\")
+		'Set the path and read the CUE
+		CUE.FDRPath = CuePath.Split("\")
 		Local CueFile:TStream = ReadFile(CuePath:String)
 		'Did it load?
 		If(CueFile)
 			Local CurrentTrack:Int = 0
 			Local CurrentTrackType:String
+			Local CurrentTrackFN:String
 			
 			'Barry: What? What is this...?			
 			'Jill: What is it?
@@ -343,23 +401,29 @@ Type CUE
 				
 				'This is the header
 				If(Line.StartsWith("FILE"))
-					'Check for Multi BIN, cuesheets
+					'Is a standard single track BIN file
 					If(BinaryFN = Null)
 						Local Split:String[] = Line.Split(Chr(34)) 'Split the quotes
 						BinaryFN = Split[1] 'Set the filename the CUE links to in our global
-					Else
-						RuntimeError("SBITools currently doesn't support multi track .BIN files") 'TODO
+						CurrentTrackFN = Split[1] 'Add it to the array afterwards
+					Else 'Oh ok so it's one of THOSE multi bin ones, nice. Lets fix it.
+						Local Split:String[] = Line.Split(Chr(34)) 'Split the quotes
+						CurrentTrackFN = Split[1] 'Add it to the array afterwards
+						'Oooh this is a seperated track image!
+						If(IsMultiTrack = False)
+							CUE.IsMultiTrack = True
+							Print "Split Track CUE image detected! Merging..."
+						EndIf
 					EndIf
 				ElseIf(Line.StartsWith("TRACK"))
 					Local Split:String[] = Line.Replace("  ", " ").Split(" ") 'Split the spaces, get rid of most duplicate spaces if there are any
 					'Set the current track and track type for when the next loop happens
 					CurrentTrack = Int(Split[1])
 					CurrentTrackType = Split[2]
-					'AddListing
 				ElseIf(Line.StartsWith("INDEX"))
 					Local Split:String[] = Line.Split(" ") 'Split the spaces
 					Local MSF:String[] = Split[2].Split(":") 'Split the colons from the MSF XX:XX:XX
-					AddListing(CurrentTrack, CurrentTrackType, Int(Split[1]), Int(MSF[0]), Int(MSF[1]), Int(MSF[2]))
+					AddListing(CurrentTrack, CurrentTrackType, Int(Split[1]), Int(MSF[0]), Int(MSF[1]), Int(MSF[2]), CurrentTrackFN)
 				EndIf
 			Wend
 			'Done using this file
@@ -378,31 +442,51 @@ Type CUE
 		Next
 		Return TrackCount:Int
 	End Function
-	Function EditBinPath(CuePath:String, NewBinPath:String, ExportPath:String)
-		Local NewCueFile:TStream = WriteFile(ExportPath:String)
-		Local CueFile:TStream = ReadFile(CuePath:String)
-		'Did it work?
-		If(NewCueFile)
-			If(CueFile)
-				While Not(Eof(CueFile))
-					Local Line:String = Upper(ReadLine(CueFile))
-					'Is it the FILE header?
-					If(Line.StartsWith("FILE"))
-						'Change the path
-						WriteLine(NewCueFile:TStream, "FILE " + Chr(34) + NewBinPath:String + Chr(34) + " BINARY")
-					Else 'Otherwise just write what was on the old one
-						WriteLine(NewCueFile:TStream, Line:String)
-					EndIf
-				Wend
-				'Free them from memory
-				CloseFile(CueFile)
-				CloseFile(NewCueFile)
-			Else
-				RuntimeError("Couldn't find .CUE file")
+	Function MergeImage(ExportPath:String)
+		Local MergedImage:TStream = WriteFile(ExportPath)
+		Local TrackNum = 1
+		For Local CueFile:CUE = EachIn CUE.List:TList
+			If(CueFile.Index = 1)
+				'Alright, lets get the path of the bin file(s) then
+				Local TrackPath:String
+				For Local x = 0 To Len(CUE.FDRPath) - 2 'Take 1 so it doesn't overflow, take another 1 so get rid of the CUE filename in this path
+					TrackPath = TrackPath + CUE.FDRPath[x] + "\"
+				Next
+				'Verification to check the track numbers are correct
+				'That way it doesn't stitch the .BINs in a wacky order!
+				If(CueFile.Track = TrackNum)
+					Print "Stitching '" + CueFile.TrackFN + "'."
+					'File doesn't exist?
+					If(FileType(TrackPath + CueFile.TrackFN) <> 1) Then RuntimeError("BIN Track '" + TrackPath + CueFile.TrackFN + "' is missing!")
+					'If we got this far, then it exists
+					Local ImageTrack:TStream = ReadFile(TrackPath + CueFile.TrackFN)
+					If Not(ImageTrack) Then RuntimeError("Unknown read error!")
+					'Still made it? Alright good! Copy the data now!
+					CopyStream(ImageTrack, MergedImage)
+					
+				Else 'Wait what? well uHHH just cycle through the whole thing until you find it
+					For Local OrderedCueFile:CUE = EachIn CUE.List:TList
+						If(OrderedCueFile.Index = 1 And OrderedCueFile.Track = TrackNum)
+							Print "Warning! CUE sheet is out of order!"
+							Print "Expected Track: " + TrackNum + ", got Track: " + CueFile.Track + " instead!"
+							Print "Stitching '" + OrderedCueFile.TrackFN + "'."
+							
+							'File doesn't exist?
+							If(FileType(TrackPath + OrderedCueFile.TrackFN) <> 1) Then RuntimeError("BIN Track '" + TrackPath + OrderedCueFile.TrackFN + "' is missing!")
+							'If we got this far, then it exists
+							Local ImageTrack:TStream = ReadFile(TrackPath + OrderedCueFile.TrackFN)
+							If Not(ImageTrack) Then RuntimeError("Unknown read error!")
+							'Still made it? Alright good! Copy the data now!
+							CopyStream(ImageTrack, MergedImage)
+						EndIf
+					Next
+				EndIf
+				'Go to next track
+				TrackNum = TrackNum + 1
 			EndIf
-		Else
-			RuntimeError("Error creating new .CUE file")
-		EndIf
+		Next
+		CloseFile(MergedImage)
+		Print "Finished merging split track image!"
 	End Function
 	
 	'Lets get the path to the .BIN file, or .IMG, whatever using the CUE's BaseName + FDRPath array, or by any means possible.
@@ -434,10 +518,31 @@ Type CUE
 		Return BaseName 'Return the BaseName because it's very useful
 	EndFunction
 	
+	'Exports the CUE array into a real CUE file
+	Function ExportCue(ExportPath:String, BinaryPath:String)
+		Local ExportFile:TStream = WriteFile(ExportPath)
+		If Not(ExportPath) Then RuntimeError("Error writing to '" + ExportPath + "'!")
+		
+		'Write the first track
+		WriteLine(ExportFile, "FILE " + Chr(34) + BinaryPath + Chr(34) + " BINARY")
+		WriteLine(ExportFile, "  TRACK 1 MODE2/2352")
+		
+		For Local CueFile:CUE = EachIn CUE.List:TList
+			'Hasn't written the track before it
+			If(CueFile.Index = 0)
+				WriteLine(ExportFile, "  TRACK " + CueFile.Track + " " + CueFile.TrackType)
+			EndIf
+			WriteLine(ExportFile, "    INDEX " + CueFile.Index + " " + NumberToStrMSF(CueFile.MSF[0]) + ":" + NumberToStrMSF(CueFile.MSF[1]) + ":" + NumberToStrMSF(CueFile.MSF[2]))
+		Next
+		CloseFile(ExportFile)
+	End Function
+	
 	'Resets everything
 	Function Clean()
 		BinaryFN:String = Null
 		BinPath:String = Null
+		IsMultiTrack:Byte = False
+		 MultiSectorCount:Int = 0
 		ClearList(List:TList)
 	End Function
 EndType

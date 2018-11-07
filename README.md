@@ -1,7 +1,8 @@
 
 
+
 # SBITools
-SBITools v0.2.1 - http://kippykip.com
+SBITools v0.3 - http://kippykip.com
 
 **Description:**
    This is a small set of conversion tools written in BlitzMax to reconstruct .SUB files using .SBI/.LSD files, and can even convert a full BIN/CUE/SBI emulator setup into a IMG/CCD/SUB setup which can be put into popular CD Burning programs such as CloneCD.
@@ -16,57 +17,61 @@ SBITools v0.2.1 - http://kippykip.com
    https://github.com/Kippykip/SBITools/releases
 
 **Arguments:**
-> SBITools.exe -sbi cuefile subchannel.sbi
-> 
-> SBITools.exe -lsd cuefile subchannel.lsd
-> 
-> SBITools.exe -cue2ccd cuefile
 
+>SBITools.exe -cue2ccd cuefile.cue
+>SBITools.exe -lsd2sub cuefile.cue subchannel.lsd
+>SBITools.exe -lsd2sbi subchannel.lsd
+>SBITools.exe -sbi2sub cuefile.cue subchannel.sbi
+>SBITools.exe -sbi2lsd subchannel.sbi
+>SBITools.exe -singletrack cuefile
+		
 **Argument Definitions:**
 
-    -sbi: Patches an images subchannel with a .SBI file.
-    -lsd: Patches an images subchannel with a .LSD file.
-	    Both -sbi and -lsd export the patched .SUB file to:
-	    \SUB\GAMENAME\GAMENAME.SUB
-    -cue2ccd: Converts a 'BIN/CUE/SBI|LSD' setup into a 'IMG/CCD/CUE/SUB' setup.
+
+
+	-cue2ccd: Converts a 'BIN/CUE/SBI|LSD' setup into a 'IMG/CCD/CUE/SUB' setup.
 	    This makes burning LibCrypt games easily possible with software such
 	    as CloneCD. SBI/LSD files are loaded from the same directory as the .CUE
-		file under the same name.
-		
-	    It exports the converted files to the "\CCD\GAMENAME\" directory, 
-	    remember to burn/launch the game from the .CCD file and not the .CUE file!
+	    file under the same name.
+	-lsd2sub: Creates a patched .SUB subchannel with a .LSD file.
+	-lsd2sbi: Converts a .SBI subchannel patch to a .LSD subchannel patch.
+	-sbi2sub: Creates a patched .SUB subchannel with a .SBI file.
+	-sbi2lsd: Converts a .SBI subchannel patch to a .LSD subchannel patch.
+	    NOTE: This cannot perfectly reconstruct the missing CRC16 bytes!
+	-singletrack: Converts a seperate track BIN/CUE setup into a single track BIN/CUE setup.
 
 **Notes:** 
-   It's ***very important*** to note, SBI files do not contain the CRC16 bytes, which is needed for certain games such as V-Rally 2: Championship Edition, MediEvil and most likely a few others. Most LibCrypt games I've tested don't check for these two bytes though.  
-   
-   ~~Regardless, SBITools v0.2 now partially reconstructs the CRC16 using a XOR of $0080 although it's not a perfect reconstruction for the whole SubChannel in anyway (as that's impossible). 
-   Until I find a way to recreate it enough to be playable, some games may not work (I know MediEvil is one of them!)~~  
-   SBITools v0.2.1 now creates a CRC16 the same way Mednafen does by making a false CRC16 hash with "bitwise exclusive or", as LibCrypt only checks if it's the wrong hash in order to start the game. Every LibCrypt game I own that I've tested now works fine with SBITool's SBI functions, including MediEvil mentioned above.
+.SBI files do not actually contain the **CRC16** needed for some LibCrypt games, however since SBITools v0.2.1, the conversion functions recreate a CRC16 the same way **Mednafen** does by making a false CRC16 hash with "bitwise exclusive or", as LibCrypt only checks if it's the wrong hash in order to start the game. 
+Every LibCrypt game I own that I've tested now works fine with SBITool's SBI functions.
 
 While this is enough to start a LibCrypt game, if you're a purist like me and want the original CRC16 bytes anyway, definitely go for .LSD files instead. They're the superior format (and I'm not sure why they weren't the standard instead of .SBI)
-They can be easily found on http://redump.org/disc/DISCID#/lsd
-Or you can get them all on the [releases page](https://github.com/Kippykip/SBITools/releases).
+They can be found on http://redump.org/disc/DISCID#/lsd
+I've bundled them all on the [releases page](https://github.com/Kippykip/SBITools/releases) and in the repository.
 
    Remember to ***ALWAYS*** test games converted with the **-cue2ccd** function on an emulator before you burn! I personally recommend using BizHawk (which uses Mednafen) and opening the converted game from the .CCD file. 
    Do ***NOT*** run the game in BizHawk from a .CUE file! The LibCrypt copy protection will kick in if you do that!
    
 **Upcoming**
  - Add a -**cdd2cue** function to reverse the process, just in case.
- - Add support for image files that have the tracks seperated (Such as "CoolGame (Track 1).bin, CoolGame (Track 2).bin, CoolGame (Track 3).bin") etc.
  - Maybe even remove the need for psxt001z too as it's only used for
-   generating blank .SUB subchannel, although it is a very useful tool to have in combination with SBITools.
- - Add a .LSD to .SBI converter, maybe the inverse too if I find a way to perfectly recreate it.
- - Add full XOR support for SBI CRC16 recreation.
+   generating blank .SUB subchannels, although it is a very useful tool to have in combination with SBITools.
 
 **Version History**
 
+	Version 0.3
+		- BIN/CUE setups with seperated tracks are now fully supported!
+		- Renamed -SBI & -LSD to -SBI2SUB & -LSD2SUB
+		- Added -singletrack conversion command, -CUE2CCD uses this automatically if necessary.
+		- Added drag and drop .BAT files for -SINGLETRACK and -CUE2CCD, since they will be used the most.
+		- Added -SBI2LSD and -LSD2SBI conversion functions
+		- -SBI2SUB & -LSD2SUB no longer export in subfolders (since it only exports 1 file anyways.)
+		- SBITools now includes all known LibCrypt LSD patches in the "LSD Patches" directory
     Version 0.2.1
         - SBI Patching functions were modified to now work with every game.
         - Cleaned up a tiny bit of code in CRC16.bmx
     Version 0.2
 	    - .SUB patch functions now also add the CD Audio track data to the subchannel. 
-		  Although this change now requires you to specify a .CUE file instead of a Binary 
-		  file for -SBI and -LSD functions. SUB files are now exported to the \SUB directory
+		  Although this change now requires you to specify a .CUE file instead of a Binary file for -SBI and -LSD functions. SUB files are now exported to the \SUB directory
 		  in these functions too.
 		- The -SBI function now recreates some of the CRC16 bytes required for handful of games,
 		  although still not 100% compatible.
