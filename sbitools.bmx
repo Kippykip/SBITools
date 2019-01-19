@@ -272,20 +272,20 @@ Select Prog
 		
 		'LibCrypt + CDDA audio Patching
 		'SBI file found
-		If(FileType(CUE.BinPath + BaseName + ".sbi")) 'SBI file found
+		If(FileType(BaseName + ".sbi")) 'SBI file found
 			Print "LibCrypt patch '" + BaseName + ".sbi' was found! Patching subchannel..."
 			'Load the subchannel
 			Local Subchannel:TBank = LoadBank("CCD\" + BaseName + "\" + BaseName + ".sub")
 			If Not(Subchannel) Then RuntimeError("Error loading subchannel!") 'Did it load?
-			SBIToSub(CUE.BinPath + BaseName + ".sbi", Subchannel) 'Run the patching function
+			SBIToSub(BaseName + ".sbi", Subchannel) 'Run the patching function
 			SaveBank(Subchannel, "CCD\" + BaseName + "\" + BaseName:String + ".sub") 'Save the modified SUB
 		'LSD file found
-		ElseIf(FileType(CUE.BinPath + BaseName + ".lsd"))
+		ElseIf(FileType(BaseName + ".lsd"))
 			Print "LibCrypt patch '" + BaseName + ".lsd' was found! Patching subchannel..."
 			'Load the subchannel
 			Local Subchannel:TBank = LoadBank("CCD\" + BaseName + "\" + BaseName + ".sub")
 			If Not(Subchannel) Then RuntimeError("Error loading subchannel!") 'Did it load?
-			LSDToSub(CUE.BinPath + BaseName:String + ".lsd", Subchannel) 'Run the patching function
+			LSDToSub(BaseName:String + ".lsd", Subchannel) 'Run the patching function
 			SaveBank(Subchannel, "CCD\" + BaseName + "\" + BaseName + ".sub") 'Save the modified SUB
 		Else 'No patches found...
 			Print "LibCrypt .SBI/.LSD patches not found in CUE directory! Ignoring patching..."
