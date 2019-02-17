@@ -262,6 +262,9 @@ Alternatively, there is a DIY open source modchip that uses an Arduino. The proj
 I really do hope you enjoy **SBITools** as much as I did making it!
 If you support the work I've put in, and want me to see more of these type of projects, you can support me with donations.  I'd gladly appreciate it! ![OH BOI](https://kippykip.com/styles/sleek/xenforo/smilies/k_dance.gif)  
   
+**KO-FI!!!**:  
+**http://ko-fi.com/kippykip**
+  
 **Crypto Addresses**:  
 **ETH:** 0xb9D6c74986c5dC372CBA6d1cb8a099910557Ab62  
 **LTC:** LYru8N52kX3zTzbsMX5jmxB1bFoMsARUCo  
