@@ -166,7 +166,7 @@ End Function
 
 'Generates SUB information about all the CD tracks
 Function GenSubCDDA(SUB:TBank)
-	Local TotalTracks:Int = CUE.CountCDDA
+	Local TotalTracks:Int = CUE.CountCDDA()
 	If(TotalTracks > 0)
 		Print "Adding CD Audio track data to subchannel"
 		Local ReplaceOffset:Int
@@ -398,7 +398,7 @@ Type CUE
 				While(Line.StartsWith(" "))
 					Line = Right(Line, Len(Line) - 1)
 				Wend
-				
+								
 				'This is the header
 				If(Line.StartsWith("FILE"))
 					'Is a standard single track BIN file
@@ -433,11 +433,15 @@ Type CUE
 		EndIf
 	End Function
 	'Counts all the tracks, excluding the data track.
-	Function CountCDDA:Int()
+	Function CountCDDA:Int(CountData:Byte = False)
 		Local TrackCount:Int = 0
 		For Local CueFile:CUE = EachIn CUE.List:TList
 			If(CueFile.Index = 0)
 				TrackCount:Int = TrackCount:Int + 1
+			ElseIf(CountData)
+				If(CueFile.Index = 1 And CueFile.TrackType = "MODE2/2352")
+					TrackCount:Int = TrackCount:Int + 1
+				EndIf
 			EndIf
 		Next
 		Return TrackCount:Int
@@ -497,7 +501,7 @@ Type CUE
 		'Sometimes in rare cases .CUE files contain the full path to the file, or maybe it could reside next to this very SBITools, lets check for that first
 		'Therefore does the Binary file exist with the exact path written in the cue? - Most likely not but lets check anyway
 		If(FileType(CUE.BinaryFN) = 1)
-			CUE.BinPath:String = CUE.BinaryFN
+			CUE.BinPath = "" 'Yes, make it no path then
 		Else 'Nope it didn't, lets search it the proper way
 			For Local i = 0 To Len(FDRPath:String[]) - 2 'Take 1 so it doesn't overflow, take another to remove the CUE filename for this string.
 				CUE.BinPath:String = CUE.BinPath:String + FDRPath:String[i] + "\"
@@ -525,12 +529,18 @@ Type CUE
 		
 		'Write the first track
 		WriteLine(ExportFile, "FILE " + Chr(34) + BinaryPath + Chr(34) + " BINARY")
-		WriteLine(ExportFile, "  TRACK 1 MODE2/2352")
 		
 		For Local CueFile:CUE = EachIn CUE.List:TList
 			'Hasn't written the track before it
 			If(CueFile.Index = 0)
 				WriteLine(ExportFile, "  TRACK " + CueFile.Track + " " + CueFile.TrackType)
+			ElseIf(CueFile.TrackType = "MODE2/2352") 'So games with multiple BINARY tracks will export the CUE file correctly
+				WriteLine(ExportFile, "  TRACK " + CueFile.Track + " MODE2/2352")
+				'It seems MODE2 tracks remove the 2 second leadin aswell
+				If(CueFile.Sector > 150)
+					CueFile.Sector = CueFile.Sector - 150
+					CueFile.MSF = SectorToMSF(CueFile.Sector)
+				EndIf
 			EndIf
 			WriteLine(ExportFile, "    INDEX " + CueFile.Index + " " + NumberToStrMSF(CueFile.MSF[0]) + ":" + NumberToStrMSF(CueFile.MSF[1]) + ":" + NumberToStrMSF(CueFile.MSF[2]))
 		Next

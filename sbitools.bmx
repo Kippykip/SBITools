@@ -6,7 +6,7 @@ Include "CRC16.bmx"
 Include "functions.bmx"
 
 'Main Program
-Print "SBITools v0.3 - http://kippykip.com"
+Print "SBITools v0.3.1 - http://kippykip.com"
 Global Prog:Int = 0
 
 'Check for psxt001z.exe
@@ -92,7 +92,8 @@ Select Prog
 		Local BaseName:String = CUE.GetBinPath(CUE.FDRPath) 'This gives us the BaseName (filename before .cue) and also adds the binary locaton to CUE.BinaryFN	
 
 		'Useful CUE information we'll use below
-		Local TrackCount:Int = CUE.CountCDDA()
+		Local TrackCount:Int = CUE.CountCDDA(True) 'How many tracks in general are there?
+		Local TrackCountCDDA:Int = CUE.CountCDDA() 'How many cd audio tracks are there?
 		Local TotalMSFLeadin:Int[] = SectorToMSF(CUE.MultiSectorCount + 150)
 		
 		'Lets make an export folder
@@ -107,11 +108,11 @@ Select Prog
 		EndIf
 		
 		Print "Creating CCD file"
-		Local CCDFile:TStream = WriteFile("CCD\" + BaseName:String + "\" + BaseName:String + ".ccd")
+		Local CCDFile:TStream = WriteFile("CCD\" + BaseName + "\" + BaseName + ".ccd")
 		
 		'0x04, otherwise if there are music tracks it's 0x00
 		Local Control:String = "Control=0x04"
-		If(TrackCount:Int > 0)
+		If(TrackCountCDDA:Int > 0)
 			Control:String = "Control=0x00"
 		EndIf
 		
@@ -120,7 +121,7 @@ Select Prog
 		WriteLine(CCDFile, "[CloneCD]")
 		WriteLine(CCDFile, "Version=3")
 		WriteLine(CCDFile, "[Disc]")
-		WriteLine(CCDFile, "TocEntries=" + (4 + TrackCount:Int)) 'Toc = 4 always, if the image has CD tracks then it 4 + MusicTrackCount, not including the data track I guess.
+		WriteLine(CCDFile, "TocEntries=" + (3 + TrackCount)) 'Toc = Almost always 4, unless there's extra audio/data tracks in it
 		WriteLine(CCDFile, "Sessions=1")
 		WriteLine(CCDFile, "DataTracksScrambled=0")
 		WriteLine(CCDFile, "CDTextLength=0")
@@ -159,10 +160,10 @@ Select Prog
 		WriteLine(CCDFile, "AFrame=0")
 		WriteLine(CCDFile, "ALBA=-150")
 		WriteLine(CCDFile, "Zero=0")
-		WriteLine(CCDFile, "PMin=" + (TrackCount:Int + 1)) 'Number of total tracks, why this is stored in PMin I have no idea. It was listed in a Google book thing.
+		WriteLine(CCDFile, "PMin=" + TrackCount) 'Number of total tracks, why this is stored in PMin I have no idea. It was listed in a Google book thing.
 		WriteLine(CCDFile, "PSec=0") 'CDDA always 0
 		WriteLine(CCDFile, "PFrame=0") 'CDDA always 0
-		WriteLine(CCDFile, "PLBA=" + (MSFToSector(TrackCount:Int + 1, 0, 0) - 150)) 'MSF of above, but take -150 (ALBA)
+		WriteLine(CCDFile, "PLBA=" + (MSFToSector(TrackCount, 0, 0) - 150)) 'MSF of above, but take -150 (ALBA)
 		
 		'Entry 2
 		WriteLine(CCDFile, "[Entry 2]")
@@ -182,35 +183,24 @@ Select Prog
 		WriteLine(CCDFile, "PFrame=" + TotalMSFLeadin[2]) 'Frames of the PLBA underneath, although 2 second leadin
 		WriteLine(CCDFile, "PLBA=" + CUE.MultiSectorCount) 'It's just the total Sector count
 		
-		'Always the same
-		WriteLine(CCDFile, "[Entry 3]")
-		WriteLine(CCDFile, "Session=1")
-		WriteLine(CCDFile, "Point=0x01")
-		WriteLine(CCDFile, "ADR=0x01")
-		WriteLine(CCDFile, "Control=0x04")
-		WriteLine(CCDFile, "TrackNo=0")
-		WriteLine(CCDFile, "AMin=0")
-		WriteLine(CCDFile, "ASec=0")
-		WriteLine(CCDFile, "AFrame=0")
-		WriteLine(CCDFile, "ALBA=-150")
-		WriteLine(CCDFile, "Zero=0")
-		WriteLine(CCDFile, "PMin=0")
-		WriteLine(CCDFile, "PSec=2")
-		WriteLine(CCDFile, "PFrame=0")
-		WriteLine(CCDFile, "PLBA=0")
-		
 		'Loop through all the audio tracks
-		Local CurrentEntry:Int = 4
+		Local CurrentEntry:Int = 3
 		For Local CueFile:CUE = EachIn CUE.List:TList
 			'Is current track in the loop an AUDIO type with index 1?
-			If(CueFile.TrackType = "AUDIO" And CueFile.Index = 1)
+			'If(CueFile.TrackType = "AUDIO" And CueFile.Index = 1)
+			If(CueFile.Index = 1)
 				WriteLine(CCDFile, "[Entry " + CurrentEntry:Int + "]")
 				WriteLine(CCDFile, "Session=1")
 				'Increases everytime, starts off at 2. It's a byte in HEX. Lowercase
 				'BMX's HEX function makes a 8 character string, so we have to cut it
 				WriteLine(CCDFile, "Point=0x" + Lower(Right(Hex(CurrentEntry:Int - 2), 2)))
 				WriteLine(CCDFile, "ADR=0x01")
-				WriteLine(CCDFile, "Control=0x00")
+				'Audio tracks are 00, Data tracks are 04?
+				If(CueFile.TrackType = "AUDIO")
+					WriteLine(CCDFile, "Control=0x00")
+				Else
+					WriteLine(CCDFile, "Control=0x04")
+				EndIf
 				WriteLine(CCDFile, "TrackNo=0")
 				WriteLine(CCDFile, "AMin=0")
 				WriteLine(CCDFile, "ASec=0")
@@ -218,13 +208,23 @@ Select Prog
 				WriteLine(CCDFile, "ALBA=-150")
 				WriteLine(CCDFile, "Zero=0")
 				
-				'MSF for this is just PLBA conversion + 150 (2 second leadin once again)
-				Local EntryMSF[] = SectorToMSF(CueFile.Sector + 150)
-				
-				WriteLine(CCDFile, "PMin=" + EntryMSF[0])
-				WriteLine(CCDFile, "PSec=" + EntryMSF[1]) 'PLBA conversion + 150
-				WriteLine(CCDFile, "PFrame=" + EntryMSF[2]) 'PLBA conversion + 150
-				WriteLine(CCDFile, "PLBA=" + CueFile.Sector) 'Seems to just be the sector count for TRACK AUDIO, INDEX 1
+				'Well, it seems every data track after track 1 doesn't have the 150 sector (2 second) leadin. Audio tracks do have the leadin though.
+				If(CueFile.Sector > 150 And CueFile.TrackType = "MODE2/2352")
+					'Just a plain MSF to PLBA conversion, with the above varibles
+					Local EntryMSF[] = SectorToMSF(CueFile.Sector)
+					WriteLine(CCDFile, "PMin=" + EntryMSF[0])
+					WriteLine(CCDFile, "PSec=" + EntryMSF[1]) 'PLBA conversion + 150
+					WriteLine(CCDFile, "PFrame=" + EntryMSF[2]) 'PLBA conversion + 150
+					WriteLine(CCDFile, "PLBA=" + (CueFile.Sector - 150)) 'Seems to just be the sector count for the current track as INDEX 1 but with the leadin removed
+				Else 'The CDDA tracks do though
+					'Just a plain MSF to PLBA conversion with a 2 second leadin
+					Local EntryMSF[] = SectorToMSF(CueFile.Sector + 150)
+					WriteLine(CCDFile, "PMin=" + EntryMSF[0])
+					WriteLine(CCDFile, "PSec=" + EntryMSF[1]) 'PLBA conversion + 150
+					WriteLine(CCDFile, "PFrame=" + EntryMSF[2]) 'PLBA conversion + 150
+					'No leadin stuff here
+					WriteLine(CCDFile, "PLBA=" + CueFile.Sector) 'Seems to just be the sector count for the current track as INDEX 1
+				EndIf
 				CurrentEntry = CurrentEntry + 1 'Increase the Entry count
 			EndIf
 		Next
@@ -246,8 +246,18 @@ Select Prog
 					WriteLine(CCDFile, "MODE=2")
 				EndIf
 			EndIf
-			WriteLine(CCDFile, "INDEX " + CueFile.Index + "=" + CueFile.Sector)
+			If(CueFile.TrackType = "MODE2/2352")
+				If(CueFile.Sector > 150)
+					WriteLine(CCDFile, "INDEX " + CueFile.Index + "=" + (CueFile.Sector - 150))
+				Else
+					WriteLine(CCDFile, "INDEX " + CueFile.Index + "=" + CueFile.Sector)
+				EndIf
+			Else
+				WriteLine(CCDFile, "INDEX " + CueFile.Index + "=" + CueFile.Sector)
+			EndIf
 		Next
+		
+		
 		CloseFile(CCDFile)
 		Print "Done writing CCD!"
 				
@@ -259,7 +269,9 @@ Select Prog
 			CUE.MergeImage("CCD\" + BaseName:String + "\" + BaseName:String + ".img")
 		Else
 			Print "Copying image (This will take a moment)"
-			CopyFile(CUE.BinPath:String + CUE.BinaryFN, "CCD\" + BaseName:String + "\" + BaseName:String + ".img")
+			CopyFile(CUE.BinPath + CUE.BinaryFN, "CCD\" + BaseName:String + "\" + BaseName:String + ".img")
+			'Print "BinPath:" + CUE.BinPath
+			'Print "BinaryFN:" + CUE.BinaryFN
 		EndIf
 		
 		'Alright, now lets make a modified cue
@@ -288,7 +300,9 @@ Select Prog
 			LSDToSub(CUE.BinPath + BaseName:String + ".lsd", Subchannel) 'Run the patching function
 			SaveBank(Subchannel, "CCD\" + BaseName + "\" + BaseName + ".sub") 'Save the modified SUB
 		Else 'No patches found...
-			Print "LibCrypt .SBI/.LSD patches not found in CUE directory! Ignoring patching..."
+			Print "Could not find '" + CUE.BinPath + BaseName + ".sbi'! Skipping..."
+			Print "Could not find '" + CUE.BinPath + BaseName + ".lsd'! Skipping..."
+			Print "LibCrypt .SBI/.LSD patches not found in CUE directory! Ignoring .SUB patching..."
 			
 			'Load the subchannel
 			Local Subchannel:TBank = LoadBank("CCD\" + BaseName + "\" + BaseName + ".sub")

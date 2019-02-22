@@ -64,6 +64,11 @@ I've bundled them all on the [releases page](https://github.com/Kippykip/SBITool
 
 **Version History**
 
+    Version 0.3.1
+        - Fixed a bug where CD images would not be copied if it was in the same directory as SBITools.
+        - CUE2CCD.BAT and SINGLETRACK.BAT drag and drop now works if the image was dragged from another drive letter.
+        - Rewrote exporting code to better support images that have multiple MODE2/2352 tracks in a single image.
+		- Made it more clear when .SBI/.LSD patches were not found, showing the path to expect.
     Version 0.3
         - BIN/CUE setups with seperated tracks are now fully supported!
         - Renamed -SBI & -LSD to -SBI2SUB & -LSD2SUB
