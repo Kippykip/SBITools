@@ -2,7 +2,7 @@
 
 
 # SBITools
-SBITools v0.3 - http://kippykip.com
+SBITools v0.3.1 - http://kippykip.com
 
 **Description:**
    This is a small set of conversion tools written in BlitzMax to reconstruct .SUB files using .SBI/.LSD files, and can even convert a full BIN/CUE/SBI emulator setup into a IMG/CCD/SUB setup which can be put into popular CD Burning programs such as CloneCD.
