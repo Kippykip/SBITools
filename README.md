@@ -68,7 +68,7 @@ I've bundled them all on the [releases page](https://github.com/Kippykip/SBITool
         - Fixed a bug where CD images would not be copied if it was in the same directory as SBITools.
         - CUE2CCD.BAT and SINGLETRACK.BAT drag and drop now works if the image was dragged from another drive letter.
         - Rewrote exporting code to better support images that have multiple MODE2/2352 tracks in a single image.
-		- Made it more clear when .SBI/.LSD patches were not found, showing the path to expect.
+	- Made it more clear when .SBI/.LSD patches were not found, showing the path to expect.
     Version 0.3
         - BIN/CUE setups with seperated tracks are now fully supported!
         - Renamed -SBI & -LSD to -SBI2SUB & -LSD2SUB
@@ -139,7 +139,7 @@ The game also has anti-cracking protection where the game will block a path with
 **MediEvil (PAL)**\
 Will have a disc error icon upon loading The Hilltop Mausoleum. Interesting to note this was actually the *FIRST* game to use LibCrypt.
 
-**MediEvil 2**\
+**MediEvil 2 (PAL)**\
 Will also have the same disc error icon as above, except upon loading Kensington.
 
 **PGA European Tour Golf (PAL)**\
@@ -148,9 +148,10 @@ In the third hole of the first tournament or by selecting some holes, the game w
 **Resident Evil 3: Nemesis (PAL)**\
 Will hang at the "Game contains violence and gore" screen.
 
-**Spyro 3: Year of the Dragon**\
+**Spyro 3: Year of the Dragon (PAL)**\
 Interesting case for this one, the game will eventually randomly delete eggs, reset progress with unlocked characters, remove sheep in boss battles, change the language and even tell you off for playing a "hacked copy" + more.
 Interesting to note that the game also detected early LibCrypt knockout PPF patches back when the game was first released as it had checksum checks throughout the game, which caused the same effects above.
+The US platinum release only has anti mod detection (not libcrypt) and will do the above effects if it realises it's been modified. The original US release appears to not have any protection.
 
 **This is Football (PAL)**\
 Hangs on the loading screen going ingame.
