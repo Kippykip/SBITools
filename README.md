@@ -7,7 +7,7 @@ SBITools v0.3.1 - http://kippykip.com
 **Description:**
    This is a small set of conversion tools written in BlitzMax to reconstruct .SUB files using .SBI/.LSD files, and can even convert a full BIN/CUE/SBI emulator setup into a IMG/CCD/SUB setup which can be put into popular CD Burning programs such as CloneCD.
    This way, LibCrypt protected games dumped in other formats can still be burned as 1:1 copies on a real Sony PlayStation console again with the LibCrypt changes fully intact.
-   **These tools are only intended for intended for PlayStation images, there's no telling how these tools would react to standard Mode 1 PC disc images.**
+   **These tools are ONLY intended for PlayStation disc images, there's no telling how these tools would react to standard Mode 1 PC disc images.**
 
 **Requirements:**
    psxt001z, to be in the same directory as SBITools
