@@ -10,11 +10,11 @@ SBITools v0.3.1 - http://kippykip.com
    **These tools are ONLY intended for PlayStation disc images, there's no telling how these tools would react to standard Mode 1 PC disc images.**
 
 **Requirements:**
-   psxt001z, to be in the same directory as SBITools
-   It can be downloaded from: http://redump.org/download/psxt001z-0.21b1.7z
-   Source Code: https://github.com/Dremora/psxt001z
-   It's pre-included in the "Releases" section for SBITools
-   https://github.com/Kippykip/SBITools/releases
+   psxt001z, to be in the same directory as SBITools  
+   It can be downloaded from: http://redump.org/download/psxt001z-0.21b1.7z  
+   Source Code: https://github.com/Dremora/psxt001z  
+   It's pre-included in the "Releases" section for SBITools  
+   https://github.com/Kippykip/SBITools/releases  
 
 **Arguments:**
 
