@@ -2,7 +2,7 @@
 
 
 # SBITools
-SBITools v0.3.1 - http://kippykip.com
+SBITools v0.3.2 - http://kippykip.com
 
 **Description:**
    This is a small set of conversion tools written in BlitzMax to reconstruct .SUB files using .SBI/.LSD files, and can even convert a full BIN/CUE/SBI emulator setup into a IMG/CCD/SUB setup which can be put into popular CD Burning programs such as CloneCD.
@@ -64,6 +64,8 @@ I've bundled them all on the [releases page](https://github.com/Kippykip/SBITool
 
 **Version History**
 
+    Version 0.3.2
+        - Modified CUESheet code to detect and fix bad AUDIO indexes. As some ReDump.org PSX dumps contain a single index for some audio tracks.
     Version 0.3.1
         - Fixed a bug where CD images would not be copied if it was in the same directory as SBITools.
         - CUE2CCD.BAT and SINGLETRACK.BAT drag and drop now works if the image was dragged from another drive letter.

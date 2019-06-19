@@ -6,7 +6,7 @@ Include "CRC16.bmx"
 Include "functions.bmx"
 
 'Main Program
-Print "SBITools v0.3.1 - http://kippykip.com"
+Print "SBITools v0.3.2 - http://kippykip.com"
 Global Prog:Int = 0
 
 'Check for psxt001z.exe

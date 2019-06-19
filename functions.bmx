@@ -423,7 +423,33 @@ Type CUE
 				ElseIf(Line.StartsWith("INDEX"))
 					Local Split:String[] = Line.Split(" ") 'Split the spaces
 					Local MSF:String[] = Split[2].Split(":") 'Split the colons from the MSF XX:XX:XX
-					AddListing(CurrentTrack, CurrentTrackType, Int(Split[1]), Int(MSF[0]), Int(MSF[1]), Int(MSF[2]), CurrentTrackFN)
+					
+					'QUICK HACK TO ADDRESS ISSUE #4 ON GITHUB
+					'Ok so is there an Index of 1, with 00 00 00 MSF?
+					'Hmm this COULD be a bad redump.org cuesheet.
+					'If there's a missing Index 00 then it's def bad, lets check for it
+					If(CurrentTrackType = "AUDIO" And Int(Split[1]) = 1 And Int(MSF[0]) = 0 And Int(MSF[1]) = 0 And Int(MSF[2]) = 0)
+						'We'll default the exists flag to false, because the FOR loop won't do anything if it's not found
+						Local Index0Exists:Byte = False
+						For Local IndexFixCue:CUE = EachIn CUE.List:TList
+							If(IndexFixCue.Index = 0 And IndexFixCue.Track = CurrentTrack And IndexFixCue.TrackType = CurrentTrackType)
+								'Ok there was an index of 00 beforehand for this track
+								Index0Exists = True
+							EndIf
+						Next
+						
+						'Hmmm, guess I was wrong and there's no leadin or something for this track?
+						If(Index0Exists)
+							AddListing(CurrentTrack, CurrentTrackType, Int(Split[1]), Int(MSF[0]), Int(MSF[1]), Int(MSF[2]), CurrentTrackFN)
+						Else 'Ok confirmed, this is a bad cuesheet. Let's fix it ourselves
+							Print "WARNING! Bad Index in CueSheet for TRACK '" + CurrentTrack + "'! Repairing..."
+							Print "If it's a ReDump.org source, you should report the cuesheet!"
+							AddListing(CurrentTrack, CurrentTrackType, 0, 0, 0, 0, CurrentTrackFN)
+							AddListing(CurrentTrack, CurrentTrackType, 1, 0, 2, 0, CurrentTrackFN)
+						EndIf
+					Else
+						AddListing(CurrentTrack, CurrentTrackType, Int(Split[1]), Int(MSF[0]), Int(MSF[1]), Int(MSF[2]), CurrentTrackFN)
+					EndIf
 				EndIf
 			Wend
 			'Done using this file
