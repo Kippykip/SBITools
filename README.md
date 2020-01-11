@@ -6,7 +6,7 @@ SBITools v0.3.2 - http://kippykip.com
 
 **Description:**
    This is a small set of conversion tools written in BlitzMax to reconstruct .SUB files using .SBI/.LSD files, and can even convert a full BIN/CUE/SBI emulator setup into a IMG/CCD/SUB setup which can be put into popular CD Burning programs such as CloneCD.
-   This way, LibCrypt protected games dumped in other formats can still be burned as 1:1 copies on a real Sony PlayStation console again with the LibCrypt changes fully intact.
+   This way, LibCrypt protected games dumped in other formats can still be burned as 1:1 copies on a real Sony PlayStation console again with the LibCrypt changes fully intact. NTSC versions of the same games don't use LibCrypt and may only have early modchip detection depending on the title.
    **These tools are ONLY intended for PlayStation disc images, there's no telling how these tools would react to standard Mode 1 PC disc images.**
 
 **Requirements:**
@@ -164,7 +164,7 @@ The game will endlessly load on the heartbeat loading screen (with no disc activ
 **Wip3out (PAL)**\
 The game will freeze when passing the finish line.
 
-## Games known with LibCrypt Protection
+## PAL Games known with LibCrypt Protection
 Actua Ice Hockey 2 (Europe)  
 Anstoss - Premier Manager (Germany)  
 Ape Escape (Europe)  
@@ -356,7 +356,6 @@ This Is Football (Europe)
 This Is Football (Italy)  
 TOCA World Touring Cars (Europe) (En,Fr,De)  
 TOCA World Touring Cars (Europe) (Es,It)  
-txt.txt
 UEFA Euro 2000 (Europe)  
 UEFA Euro 2000 (France)  
 UEFA Euro 2000 (Germany)  
