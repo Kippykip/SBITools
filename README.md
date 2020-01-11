@@ -460,8 +460,8 @@ If you manage to get one of these, then you have a completely different problem.
 In order to fix this, you will have to upgrade the modchip in your Sony PlayStation to one with **stealth capabilities**.
 
 The MultiMode 3 (MM3) is the best choice in my opinion, as it supports every PlayStation model out there ***EXCEPT*** the **PAL PSone Slim**. If you have one of those, you'll need a **ONEChip** instead.
-If you need a guide on how to wire and even make your own modchip, [I've written up a full guide on my website.](https://kippykip.com/index.php?threads/playstation-1-modchip-hex-dumps-mm3-and-onechip-and-more.500/)\
-Alternatively, there is a DIY open source modchip that uses an Arduino. The project is called [PSNee and is on github.](https://github.com/kalymos/PsNee)
+If you need a guide on how to wire and even make your own modchip, [I've got another git with modchip HEX files and diagrams](https://github.com/Kippykip/PSX-Modchip)\
+Alternatively, there is a DIY open source modchip that uses an Arduino. The project is called [PSNee and is on github as well.](https://github.com/kalymos/PsNee)
 
 ## Additional Credits and Sources:
 **qnorsten**: For creating a script to grab all .LSD files from ReDump.org\
