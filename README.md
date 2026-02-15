@@ -268,7 +268,7 @@ Alternatively, there is a DIY open source modchip that uses an Arduino. The proj
 **Mednafen**: Workaround for using SBI files without the original CRC16 bytes, and CRC16 function.\
 **Dremora**: Explanation and whereabouts of .LSD files, creator of [psxt001z](https://github.com/Dremora/psxt001z/)\
 *And everyone else at the ReDump team!*\
-[PSX RAW-DAO/RAW-SAO Information](https://forum.redfox.bz/threads/ps1-psone-backups.25000/)
+[PSX RAW-DAO/RAW-SAO Information](https://web.archive.org/web/20160302181659/https://forum.redfox.bz/threads/ps1-psone-backups.25000/)
 
 ## Support:
 I really do hope you enjoy **SBITools** as much as I did making it!
